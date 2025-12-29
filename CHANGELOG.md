@@ -1,0 +1,24 @@
+# Changelog
+
+## [0.0.1-beta.2](https://github.com/duongductrong/antigravity-kit/compare/v0.0.1-beta.1...v0.0.1-beta.2) (2025-12-29)
+
+
+### 🚀 Features
+
+* Add quitAntigravity function to manage application closure and enhance profile switching logic. Update prompts and error handling in the switch command for improved user experience. ([c18cc68](https://github.com/duongductrong/antigravity-kit/commit/c18cc685713034c559eb323dba91de04b886e04a))
+* Initialize project structure with essential files including .gitignore, LICENSE, package.json, and configuration files. Add CLI commands for authentication management and utility functions for profile and SQLite handling. Implement foundational skills and resources for frontend and backend development, along with problem-solving techniques. ([a4b55f4](https://github.com/duongductrong/antigravity-kit/commit/a4b55f4cb10d30f66585a54ab409269e28f7c2b7))
+
+
+### 📚 Documentation
+
+* Add README.md to document the Antigravity Kit CLI toolkit, detailing features, installation instructions, commands, and platform support for managing Google Antigravity IDE authentication profiles. ([0a7478f](https://github.com/duongductrong/antigravity-kit/commit/0a7478f1dab5d7218e0eb150161431cbb6d87a66))
+
+
+### 🏠 Chores
+
+* Set up project configuration files including .nvmrc, release-please manifest, and GitHub workflows for automated releases and publishing. Update package version to 0.0.1-beta.1 in package.json. ([7479551](https://github.com/duongductrong/antigravity-kit/commit/7479551c90832b40b89f089d963a6c470b95cd1b))
+
+
+### ♻️ Code Refactoring
+
+* Improve code formatting and organization in authentication commands and utilities. Enhance user prompts for clarity and add new functions for managing authentication status in SQLite. Clean up unused imports and streamline existing logic for better readability. ([ca1d1c3](https://github.com/duongductrong/antigravity-kit/commit/ca1d1c35bd7a3e03147e6031966c9a21cfda3ca1))
