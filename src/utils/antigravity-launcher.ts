@@ -98,7 +98,7 @@ export async function isAntigravityRunning(): Promise<boolean> {
 
 	try {
 		if (os === "darwin") {
-			const { stdout } = await execAsync("pgrep -x Antigravity");
+			const { stdout } = await execAsync('pgrep -li "Antigravity"');
 			return stdout.trim().length > 0;
 		}
 
@@ -115,6 +115,26 @@ export async function isAntigravityRunning(): Promise<boolean> {
 		}
 
 		return false;
+	} catch {
+		return false;
+	}
+}
+
+export async function quitAntigravity(): Promise<boolean> {
+	const os = platform();
+
+	try {
+		if (os === "darwin") {
+			// await execAsync('osascript -e \'quit app "Antigravity"\'');
+			await execAsync('pkill -9 -f "Antigravity"');
+		} else if (os === "linux") {
+			await execAsync("pkill -x antigravity");
+		} else if (os === "win32") {
+			await execAsync("taskkill /IM antigravity.exe /F");
+		}
+
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		return true;
 	} catch {
 		return false;
 	}
