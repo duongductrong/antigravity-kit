@@ -1,0 +1,396 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (preview changes without releasing)"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  validate:
+    name: Validate Pre-release
+    runs-on: ubuntu-latest
+    outputs:
+      current_version: ${{ steps.version.outputs.current }}
+      stable_version: ${{ steps.version.outputs.stable }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+      prerelease_tags: ${{ steps.prereleases.outputs.tags }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get current version
+        id: version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          
+          if [[ "$CURRENT_VERSION" == *"-"* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            STABLE_VERSION=$(echo "$CURRENT_VERSION" | cut -d'-' -f1)
+            echo "stable=$STABLE_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "stable=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate pre-release
+        if: steps.version.outputs.is_prerelease != 'true'
+        run: |
+          echo "❌ Current version (${{ steps.version.outputs.current }}) is not a pre-release."
+          echo "Pre-release versions must contain a hyphen (e.g., 1.0.2-beta.1)"
+          exit 1
+
+      - name: Check if stable tag exists
+        run: |
+          STABLE_TAG="v${{ steps.version.outputs.stable }}"
+          if git rev-parse "$STABLE_TAG" >/dev/null 2>&1; then
+            echo "❌ Tag $STABLE_TAG already exists!"
+            exit 1
+          fi
+          echo "✅ Tag $STABLE_TAG is available"
+
+      - name: Find all pre-release tags for this version
+        id: prereleases
+        run: |
+          STABLE_VERSION="${{ steps.version.outputs.stable }}"
+          
+          # Find all pre-release tags matching this stable version
+          PRERELEASE_TAGS=$(git tag -l "v${STABLE_VERSION}-*" --sort=-v:refname | tr '\n' ' ')
+          echo "tags=$PRERELEASE_TAGS" >> $GITHUB_OUTPUT
+          echo "📋 Found pre-release tags: $PRERELEASE_TAGS"
+
+      - name: Summary
+        run: |
+          echo "## 🔍 Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Current Version | \`${{ steps.version.outputs.current }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Target Stable | \`${{ steps.version.outputs.stable }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pre-releases | \`${{ steps.prereleases.outputs.tags }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dry Run | ${{ inputs.dry_run }} |" >> $GITHUB_STEP_SUMMARY
+
+  promote:
+    name: Create Stable Release
+    needs: validate
+    if: needs.validate.outputs.is_prerelease == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.release-flag.outputs.released }}
+      tag_name: ${{ steps.release-flag.outputs.tag_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update package.json version
+        run: |
+          npm version ${{ needs.validate.outputs.stable_version }} --no-git-tag-version
+          echo "✅ Updated package.json to ${{ needs.validate.outputs.stable_version }}"
+
+      - name: Update release-please manifest
+        run: |
+          echo '{ ".": "${{ needs.validate.outputs.stable_version }}" }' > .release-please-manifest.json
+          echo "✅ Updated .release-please-manifest.json"
+
+      - name: Reset release-please config for next cycle
+        run: |
+          node -e "
+            const fs = require('fs');
+            const config = JSON.parse(fs.readFileSync('release-please-config.json', 'utf8'));
+            config.packages['.'].prerelease = true;
+            config.packages['.']['prerelease-type'] = 'beta';
+            fs.writeFileSync('release-please-config.json', JSON.stringify(config, null, 2) + '\n');
+          "
+          echo "✅ Reset prerelease mode for next development cycle"
+
+      - name: Aggregate pre-release changelogs
+        id: changelog
+        run: |
+          STABLE_VERSION="${{ needs.validate.outputs.stable_version }}"
+          PRERELEASE_TAGS="${{ needs.validate.outputs.prerelease_tags }}"
+          
+          # Get the previous stable tag
+          PREV_STABLE=$(git tag -l "v*" --sort=-v:refname | grep -v "-" | head -n1)
+          
+          # Start building release notes for GitHub Release
+          cat > /tmp/release_notes.md << 'EOF'
+          ## 🎉 Stable Release
+          
+          This release consolidates all pre-release versions into a stable release.
+          
+          EOF
+          
+          # List included pre-releases
+          if [[ -n "$PRERELEASE_TAGS" ]]; then
+            echo "### 📦 Included Pre-releases" >> /tmp/release_notes.md
+            echo "" >> /tmp/release_notes.md
+            for tag in $PRERELEASE_TAGS; do
+              echo "- \`$tag\`" >> /tmp/release_notes.md
+            done
+            echo "" >> /tmp/release_notes.md
+          fi
+          
+          # Aggregate changes from all pre-releases
+          echo "### 📝 All Changes" >> /tmp/release_notes.md
+          echo "" >> /tmp/release_notes.md
+          
+          # Get commits since last stable (or all commits if no stable exists)
+          if [[ -n "$PREV_STABLE" ]]; then
+            echo "Changes since $PREV_STABLE:" >> /tmp/release_notes.md
+            echo "" >> /tmp/release_notes.md
+            
+            # Group by type
+            for type in feat fix perf docs refactor chore test ci build; do
+              COMMITS=$(git log $PREV_STABLE..HEAD --pretty=format:"- %s (%h)" --no-merges --grep="^$type" 2>/dev/null || echo "")
+              if [[ -n "$COMMITS" ]]; then
+                case $type in
+                  feat) echo "#### 🚀 Features" >> /tmp/release_notes.md ;;
+                  fix) echo "#### 🐛 Bug Fixes" >> /tmp/release_notes.md ;;
+                  perf) echo "#### ⚡ Performance" >> /tmp/release_notes.md ;;
+                  docs) echo "#### 📚 Documentation" >> /tmp/release_notes.md ;;
+                  refactor) echo "#### ♻️ Refactoring" >> /tmp/release_notes.md ;;
+                  chore) echo "#### 🏠 Chores" >> /tmp/release_notes.md ;;
+                  test) echo "#### ✅ Tests" >> /tmp/release_notes.md ;;
+                  ci) echo "#### 👷 CI/CD" >> /tmp/release_notes.md ;;
+                  build) echo "#### 📦 Build" >> /tmp/release_notes.md ;;
+                esac
+                echo "" >> /tmp/release_notes.md
+                echo "$COMMITS" >> /tmp/release_notes.md
+                echo "" >> /tmp/release_notes.md
+              fi
+            done
+          else
+            echo "Initial stable release" >> /tmp/release_notes.md
+          fi
+          
+          echo "✅ Generated aggregated release notes"
+          cat /tmp/release_notes.md
+
+      - name: Update CHANGELOG.md
+        run: |
+          STABLE_VERSION="${{ needs.validate.outputs.stable_version }}"
+          PREV_STABLE=$(git tag -l "v*" --sort=-v:refname | grep -v "-" | head -n1)
+          CURRENT_DATE=$(date +%Y-%m-%d)
+          
+          # Generate CHANGELOG entry for stable release
+          echo "## [$STABLE_VERSION](https://github.com/${{ github.repository }}/compare/${PREV_STABLE}...v${STABLE_VERSION}) (${CURRENT_DATE})" > /tmp/changelog_entry.md
+          echo "" >> /tmp/changelog_entry.md
+          
+          # Group commits by type for CHANGELOG format
+          if [[ -n "$PREV_STABLE" ]]; then
+            # Features
+            FEAT_COMMITS=$(git log $PREV_STABLE..HEAD --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" --no-merges --grep="^feat" 2>/dev/null || echo "")
+            if [[ -n "$FEAT_COMMITS" ]]; then
+              echo "" >> /tmp/changelog_entry.md
+              echo "### 🚀 Features" >> /tmp/changelog_entry.md
+              echo "" >> /tmp/changelog_entry.md
+              echo "$FEAT_COMMITS" >> /tmp/changelog_entry.md
+            fi
+            
+            # Bug Fixes
+            FIX_COMMITS=$(git log $PREV_STABLE..HEAD --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" --no-merges --grep="^fix" 2>/dev/null || echo "")
+            if [[ -n "$FIX_COMMITS" ]]; then
+              echo "" >> /tmp/changelog_entry.md
+              echo "### 🐛 Bug Fixes" >> /tmp/changelog_entry.md
+              echo "" >> /tmp/changelog_entry.md
+              echo "$FIX_COMMITS" >> /tmp/changelog_entry.md
+            fi
+            
+            # Performance
+            PERF_COMMITS=$(git log $PREV_STABLE..HEAD --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" --no-merges --grep="^perf" 2>/dev/null || echo "")
+            if [[ -n "$PERF_COMMITS" ]]; then
+              echo "" >> /tmp/changelog_entry.md
+              echo "### ⚡ Performance" >> /tmp/changelog_entry.md
+              echo "" >> /tmp/changelog_entry.md
+              echo "$PERF_COMMITS" >> /tmp/changelog_entry.md
+            fi
+            
+            # Documentation
+            DOCS_COMMITS=$(git log $PREV_STABLE..HEAD --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" --no-merges --grep="^docs" 2>/dev/null || echo "")
+            if [[ -n "$DOCS_COMMITS" ]]; then
+              echo "" >> /tmp/changelog_entry.md
+              echo "### 📚 Documentation" >> /tmp/changelog_entry.md
+              echo "" >> /tmp/changelog_entry.md
+              echo "$DOCS_COMMITS" >> /tmp/changelog_entry.md
+            fi
+            
+            # Refactoring
+            REFACTOR_COMMITS=$(git log $PREV_STABLE..HEAD --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" --no-merges --grep="^refactor" 2>/dev/null || echo "")
+            if [[ -n "$REFACTOR_COMMITS" ]]; then
+              echo "" >> /tmp/changelog_entry.md
+              echo "### ♻️ Code Refactoring" >> /tmp/changelog_entry.md
+              echo "" >> /tmp/changelog_entry.md
+              echo "$REFACTOR_COMMITS" >> /tmp/changelog_entry.md
+            fi
+            
+            # Chores
+            CHORE_COMMITS=$(git log $PREV_STABLE..HEAD --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" --no-merges --grep="^chore" 2>/dev/null || echo "")
+            if [[ -n "$CHORE_COMMITS" ]]; then
+              echo "" >> /tmp/changelog_entry.md
+              echo "### 🏠 Chores" >> /tmp/changelog_entry.md
+              echo "" >> /tmp/changelog_entry.md
+              echo "$CHORE_COMMITS" >> /tmp/changelog_entry.md
+            fi
+          else
+            echo "" >> /tmp/changelog_entry.md
+            echo "### Initial Release" >> /tmp/changelog_entry.md
+          fi
+          
+          echo "" >> /tmp/changelog_entry.md
+          
+          # Read existing CHANGELOG.md and remove pre-release entries for this version
+          if [[ -f CHANGELOG.md ]]; then
+            # Extract header (# Changelog line)
+            HEADER=$(head -n 1 CHANGELOG.md)
+            
+            # Remove all pre-release entries (versions containing '-') and keep only stable releases
+            # Keep the header and filter out pre-release version sections
+            echo "$HEADER" > /tmp/changelog_stable.md
+            echo "" >> /tmp/changelog_stable.md
+            
+            # Use awk to filter out pre-release sections
+            awk '
+              BEGIN { skip = 0; first_section = 1 }
+              /^## \[/ {
+                # Check if this is a pre-release version (contains hyphen in version)
+                if ($0 ~ /## \[[0-9]+\.[0-9]+\.[0-9]+-/) {
+                  skip = 1
+                } else {
+                  skip = 0
+                  first_section = 0
+                }
+              }
+              !skip && !/^# Changelog/ { print }
+            ' CHANGELOG.md >> /tmp/changelog_stable.md
+            
+            # Combine: header + new entry + stable entries
+            echo "$HEADER" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            cat /tmp/changelog_entry.md >> CHANGELOG.md
+            # Append existing stable entries (skip the header we already added)
+            tail -n +3 /tmp/changelog_stable.md >> CHANGELOG.md
+          else
+            # Create new CHANGELOG.md
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            cat /tmp/changelog_entry.md >> CHANGELOG.md
+          fi
+          
+          echo "✅ Updated CHANGELOG.md with stable release"
+          echo "📋 New entry:"
+          cat /tmp/changelog_entry.md
+
+      - name: Commit changes
+        if: inputs.dry_run != true
+        run: |
+          git add package.json .release-please-manifest.json release-please-config.json CHANGELOG.md
+          git commit -m "chore(release): promote to stable v${{ needs.validate.outputs.stable_version }}"
+          git push
+
+      - name: Create and push tag
+        if: inputs.dry_run != true
+        run: |
+          TAG_NAME="v${{ needs.validate.outputs.stable_version }}"
+          git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
+          git push origin "$TAG_NAME"
+          echo "✅ Created and pushed tag $TAG_NAME"
+
+      - name: Create GitHub Release
+        if: inputs.dry_run != true
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.validate.outputs.stable_version }}
+          name: "v${{ needs.validate.outputs.stable_version }}"
+          body_path: /tmp/release_notes.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set release flag
+        id: release-flag
+        if: inputs.dry_run != true
+        run: |
+          echo "released=true" >> $GITHUB_OUTPUT
+          echo "tag_name=v${{ needs.validate.outputs.stable_version }}" >> $GITHUB_OUTPUT
+
+      - name: Dry run summary
+        if: inputs.dry_run == true
+        run: |
+          echo "## 🧪 Dry Run Preview" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Actions that would be performed:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✏️ Update \`package.json\` to \`${{ needs.validate.outputs.stable_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "2. ✏️ Update \`.release-please-manifest.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. ✏️ Reset \`release-please-config.json\` for next cycle" >> $GITHUB_STEP_SUMMARY
+          echo "4. 📝 Update \`CHANGELOG.md\` (remove pre-releases, add stable entry)" >> $GITHUB_STEP_SUMMARY
+          echo "5. 🏷️ Create tag \`v${{ needs.validate.outputs.stable_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "6. 📦 Create GitHub release with aggregated changelog" >> $GITHUB_STEP_SUMMARY
+          echo "7. 🚀 Trigger npm publish (via release event)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pre-releases to be consolidated:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          for tag in ${{ needs.validate.outputs.prerelease_tags }}; do
+            echo "- \`$tag\`" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Generated CHANGELOG Entry:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat /tmp/changelog_entry.md >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Generated GitHub Release Notes:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat /tmp/release_notes.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Success summary
+        if: inputs.dry_run != true
+        run: |
+          echo "## ✅ Stable Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | \`v${{ needs.validate.outputs.stable_version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pre-releases consolidated | \`${{ needs.validate.outputs.prerelease_tags }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| CHANGELOG.md | ✅ Updated (pre-releases removed) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 **npm publish will be triggered automatically.**" >> $GITHUB_STEP_SUMMARY
+
+  publish:
+    name: Publish to npm
+    needs: promote
+    if: needs.promote.outputs.released == 'true'
+    uses: ./.github/workflows/publish.yml
+    with:
+      tag_name: ${{ needs.promote.outputs.tag_name }}
+      prerelease: false
+    secrets: inherit

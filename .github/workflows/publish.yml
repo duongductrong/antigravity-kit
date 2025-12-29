@@ -1,0 +1,88 @@
+name: Publish to npm
+
+on:
+  # Called from other workflows (pre-release.yml, release.yml)
+  workflow_call:
+    inputs:
+      tag_name:
+        description: "The tag name to publish"
+        required: true
+        type: string
+      prerelease:
+        description: "Whether this is a pre-release"
+        required: false
+        type: boolean
+        default: false
+  # Keep release trigger for manual releases or releases created with PAT
+  release:
+    types: [published, prereleased]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag_name || github.event.release.tag_name }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Determine npm tag
+        id: npm-tag
+        run: |
+          # Check if called via workflow_call (inputs available) or release event
+          if [[ -n "${{ inputs.tag_name }}" ]]; then
+            IS_PRERELEASE="${{ inputs.prerelease }}"
+          else
+            IS_PRERELEASE="${{ github.event.release.prerelease }}"
+          fi
+          
+          if [[ "$IS_PRERELEASE" == "true" ]]; then
+            echo "tag=beta" >> $GITHUB_OUTPUT
+            echo "📦 Publishing as beta (pre-release)"
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+            echo "📦 Publishing as latest (stable)"
+          fi
+
+      - name: Publish to npm
+        run: pnpm publish --access=public --no-git-checks --tag ${{ steps.npm-tag.outputs.tag }} --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Summary
+        run: |
+          TAG_NAME="${{ inputs.tag_name || github.event.release.tag_name }}"
+          IS_PRERELEASE="${{ inputs.prerelease || github.event.release.prerelease }}"
+          
+          echo "## 📦 Published to npm" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | \`$TAG_NAME\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tag | \`${{ steps.npm-tag.outputs.tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pre-release | $IS_PRERELEASE |" >> $GITHUB_STEP_SUMMARY
