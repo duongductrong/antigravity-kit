@@ -1,7 +1,9 @@
+import { existsSync, mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import Database from "better-sqlite3";
 import type { AuthSessionData } from "../types/auth.js";
 
-interface AntigravityAuthStatus {
+export interface AntigravityAuthStatus {
 	name?: string;
 	email?: string;
 	apiKey?: string;
@@ -138,3 +140,93 @@ export function getFirstAuthSession(dbPath: string): AuthSessionData | null {
 	return sessions[0] ?? null;
 }
 
+function ensureDbDirectory(dbPath: string): void {
+	const dir = dirname(dbPath);
+	if (!existsSync(dir)) {
+		mkdirSync(dir, { recursive: true });
+	}
+}
+
+function ensureItemTable(db: Database.Database): void {
+	db.exec(`
+		CREATE TABLE IF NOT EXISTS ItemTable (
+			key TEXT PRIMARY KEY,
+			value TEXT
+		)
+	`);
+}
+
+export function writeAntigravityAuthStatus(
+	dbPath: string,
+	authStatus: AntigravityAuthStatus,
+): boolean {
+	try {
+		ensureDbDirectory(dbPath);
+
+		const db = new Database(dbPath);
+		ensureItemTable(db);
+
+		const jsonValue = JSON.stringify(authStatus);
+
+		const stmt = db.prepare(`
+			INSERT OR REPLACE INTO ItemTable (key, value)
+			VALUES ('antigravityAuthStatus', ?)
+		`);
+
+		stmt.run(jsonValue);
+		db.close();
+
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+export function clearAntigravityAuthStatus(dbPath: string): boolean {
+	try {
+		if (!existsSync(dbPath)) {
+			return true;
+		}
+
+		const db = new Database(dbPath);
+
+		const stmt = db.prepare(`
+			DELETE FROM ItemTable WHERE key = 'antigravityAuthStatus'
+		`);
+
+		stmt.run();
+		db.close();
+
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+export function readAntigravityAuthStatus(
+	dbPath: string,
+): AntigravityAuthStatus | null {
+	try {
+		if (!existsSync(dbPath)) {
+			return null;
+		}
+
+		const db = new Database(dbPath, { readonly: true });
+
+		const row = db
+			.prepare(`
+			SELECT value FROM ItemTable WHERE key = 'antigravityAuthStatus'
+		`)
+			.get() as { value: string } | undefined;
+
+		db.close();
+
+		if (!row) {
+			return null;
+		}
+
+		return JSON.parse(row.value) as AntigravityAuthStatus;
+	} catch {
+		return null;
+	}
+}

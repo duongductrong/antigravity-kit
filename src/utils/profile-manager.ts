@@ -1,4 +1,5 @@
 import {
+	type FSWatcher,
 	cpSync,
 	existsSync,
 	lstatSync,
@@ -8,7 +9,6 @@ import {
 	rmSync,
 	statSync,
 	watch,
-	type FSWatcher,
 } from "node:fs";
 import { homedir, platform } from "node:os";
 import { join } from "node:path";
@@ -184,9 +184,7 @@ export interface WatchResult {
 	session: AuthSessionData;
 }
 
-export function watchForAuth(
-	timeoutMs: number = 300000,
-): Promise<WatchResult> {
+export function watchForAuth(timeoutMs = 300000): Promise<WatchResult> {
 	return new Promise((resolve, reject) => {
 		// Watch the DEFAULT Antigravity data directory, not custom profile
 		// because Antigravity doesn't respect --user-data-dir argument
@@ -267,6 +265,25 @@ export function watchForAuth(
 		// Start watching after a short delay
 		setTimeout(startWatcher, 1000);
 	});
+}
+
+export function createEmptyProfile(email: string): string {
+	const safeEmail = email.replace(/[^a-zA-Z0-9@._-]/g, "_");
+	const profilePath = join(getProfilesDir(), safeEmail);
+
+	ensureProfilesDir();
+
+	// Remove existing profile if exists
+	if (existsSync(profilePath)) {
+		rmSync(profilePath, { recursive: true, force: true });
+	}
+
+	// Create profile directory structure needed for Antigravity
+	mkdirSync(profilePath, { recursive: true });
+	mkdirSync(join(profilePath, "User"), { recursive: true });
+	mkdirSync(join(profilePath, "User", "globalStorage"), { recursive: true });
+
+	return profilePath;
 }
 
 export function copyDefaultProfileToStorage(email: string): string {
@@ -398,4 +415,3 @@ export function getActiveProfileEmail(): string | null {
 	const activeProfile = profiles.find((p) => isActiveProfile(p.profilePath));
 	return activeProfile?.email ?? null;
 }
-

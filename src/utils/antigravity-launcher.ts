@@ -119,4 +119,3 @@ export async function isAntigravityRunning(): Promise<boolean> {
 		return false;
 	}
 }
-

@@ -66,7 +66,10 @@ export function isActiveProfile(profilePath: string): boolean {
 	if (!activeProfilePath) {
 		return false;
 	}
-	return activeProfilePath === profilePath || basename(activeProfilePath) === basename(profilePath);
+	return (
+		activeProfilePath === profilePath ||
+		basename(activeProfilePath) === basename(profilePath)
+	);
 }
 
 export function removeActiveSymlink(): boolean {
@@ -80,4 +83,3 @@ export function removeActiveSymlink(): boolean {
 		return false;
 	}
 }
-

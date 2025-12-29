@@ -1,5 +1,10 @@
 // Types
-export type { AuthSession, AuthSessionData, Profile, ProfileStore } from "./types/auth.js";
+export type {
+	AuthSession,
+	AuthSessionData,
+	Profile,
+	ProfileStore,
+} from "./types/auth.js";
 
 export {
 	ACTIVE_SYMLINK_NAME,

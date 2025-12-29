@@ -172,9 +172,7 @@ export default defineCommand({
 		});
 
 		if (p.isCancel(shouldLaunch)) {
-			p.outro(
-				`${pc.green("✔")} Switched to ${pc.cyan(selectedProfile.email)}`,
-			);
+			p.outro(`${pc.green("✔")} Switched to ${pc.cyan(selectedProfile.email)}`);
 			return;
 		}
 
@@ -190,9 +188,7 @@ export default defineCommand({
 				);
 			}
 		} else {
-			p.outro(
-				`${pc.green("✔")} Switched to ${pc.cyan(selectedProfile.email)}`,
-			);
+			p.outro(`${pc.green("✔")} Switched to ${pc.cyan(selectedProfile.email)}`);
 		}
 	},
 });

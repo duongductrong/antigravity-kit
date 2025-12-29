@@ -77,9 +77,7 @@ export default defineCommand({
 
 		const activeProfile = profiles.find((p) => isActiveProfile(p.profilePath));
 		if (activeProfile) {
-			console.log(
-				pc.dim("Active profile: ") + pc.green(activeProfile.email),
-			);
+			console.log(pc.dim("Active profile: ") + pc.green(activeProfile.email));
 		}
 
 		console.log(
