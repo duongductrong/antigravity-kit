@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.1-beta.6](https://github.com/duongductrong/antigravity-kit/compare/v0.0.1-beta.5...v0.0.1-beta.6) (2026-01-01)
+
+
+### 📚 Documentation
+
+* Add interactive `agk auth` command and workspace options to `agk auth switch`. ([635a70c](https://github.com/duongductrong/antigravity-kit/commit/635a70c6ff8f959b324a371f8d9ecba519bd3021))
+
 ## [0.0.1-beta.5](https://github.com/duongductrong/antigravity-kit/compare/v0.0.1-beta.4...v0.0.1-beta.5) (2026-01-01)
 
 
