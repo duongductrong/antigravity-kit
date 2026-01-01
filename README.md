@@ -28,14 +28,13 @@ yarn global add antigravity-kit
 ## 🎯 Quick Start
 
 ```bash
-# Add your first account
-agk auth add
+# Interactive menu - select from available actions
+agk auth
 
-# List all profiles
-agk auth list
-
-# Switch to a different profile
-agk auth switch
+# Or use direct commands:
+agk auth add      # Add your first account
+agk auth list     # List all profiles
+agk auth switch   # Switch to a different profile
 ```
 
 ## 📖 Commands
@@ -123,15 +122,27 @@ Use 'auth switch' to change the active profile
 Switch between Google Antigravity profiles.
 
 ```bash
+# Interactive selection
 agk auth switch
+
+# With workspace options
+agk auth switch --workspace select    # Choose workspace interactively
+agk auth switch -w my-project         # Open specific workspace by name
 ```
+
+**Options:**
+
+| Flag | Alias | Description |
+|------|-------|-------------|
+| `--workspace <name>` | `-w` | Specify a workspace to open. Use `select` to choose interactively. |
 
 **How it works:**
 
 1. Displays a list of all saved profiles
 2. Select the profile you want to switch to
 3. If Antigravity is running, you'll be prompted to close it
-4. Profile data is restored and you can optionally launch Antigravity
+4. Profile data is restored and Antigravity can be launched
+5. **Workspace persistence**: Your previously open workspace is remembered and reopened automatically
 
 **Example output:**
 
@@ -151,7 +162,7 @@ Closing Antigravity...
 
 ? Launch Antigravity with the new profile? … yes
 
-✔ Switched to work@company.com and launched Antigravity
+✔ Switched to work@company.com and opened my-project
 ```
 
 ---
