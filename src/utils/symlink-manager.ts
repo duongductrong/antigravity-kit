@@ -22,7 +22,7 @@ export function setActiveProfile(profilePath: string): boolean {
 		const symlinkPath = getActiveSymlinkPath();
 
 		if (existsSync(symlinkPath)) {
-			rmSync(symlinkPath, { force: true });
+			rmSync(symlinkPath, { recursive: true, force: true });
 		}
 
 		symlinkSync(profilePath, symlinkPath);
@@ -76,7 +76,7 @@ export function removeActiveSymlink(): boolean {
 	try {
 		const symlinkPath = getActiveSymlinkPath();
 		if (existsSync(symlinkPath)) {
-			rmSync(symlinkPath, { force: true });
+			rmSync(symlinkPath, { recursive: true, force: true });
 		}
 		return true;
 	} catch {
