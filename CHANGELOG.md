@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.1-beta.5](https://github.com/duongductrong/antigravity-kit/compare/v0.0.1-beta.4...v0.0.1-beta.5) (2026-01-01)
+
+
+### 🏠 Chores
+
+* fix issue error TS2322 ([124b87a](https://github.com/duongductrong/antigravity-kit/commit/124b87aef036955b2346e3605a7c402dc6a7b255))
+
 ## [0.0.1-beta.4](https://github.com/duongductrong/antigravity-kit/compare/v0.0.1-beta.3...v0.0.1-beta.4) (2026-01-01)
 
 
