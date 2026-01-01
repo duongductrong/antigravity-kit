@@ -41,7 +41,10 @@ function getAntigravityPath(): string | null {
 	return null;
 }
 
-export async function openAntigravity(profilePath?: string): Promise<void> {
+export async function openAntigravity(
+	profilePath?: string,
+	workspacePath?: string,
+): Promise<void> {
 	const os = platform();
 
 	if (os === "darwin") {
@@ -52,22 +55,34 @@ export async function openAntigravity(profilePath?: string): Promise<void> {
 			);
 		}
 
+		// Build the command with optional arguments
+		let command = `open -a "${appPath}"`;
+
+		// Add workspace path as the folder to open
+		if (workspacePath) {
+			command += ` "${workspacePath}"`;
+		}
+
 		// Note: Antigravity may ignore --user-data-dir, so we just open it
 		// and let it use its default data directory
 		if (profilePath) {
-			await execAsync(
-				`open -a "${appPath}" --args --user-data-dir="${profilePath}"`,
-			);
-		} else {
-			await execAsync(`open -a "${appPath}"`);
+			command += ` --args --user-data-dir="${profilePath}"`;
 		}
+
+		await execAsync(command);
 	} else if (os === "linux") {
 		const binPath = getAntigravityPath();
 		if (!binPath) {
 			throw new Error("antigravity command not found");
 		}
 
-		const args = profilePath ? [`--user-data-dir=${profilePath}`] : [];
+		const args: string[] = [];
+		if (workspacePath) {
+			args.push(workspacePath);
+		}
+		if (profilePath) {
+			args.push(`--user-data-dir=${profilePath}`);
+		}
 		spawn(binPath, args, {
 			detached: true,
 			stdio: "ignore",
@@ -78,7 +93,13 @@ export async function openAntigravity(profilePath?: string): Promise<void> {
 			throw new Error("antigravity.exe not found");
 		}
 
-		const args = profilePath ? [`--user-data-dir=${profilePath}`] : [];
+		const args: string[] = [];
+		if (workspacePath) {
+			args.push(workspacePath);
+		}
+		if (profilePath) {
+			args.push(`--user-data-dir=${profilePath}`);
+		}
 		spawn(exePath, args, {
 			detached: true,
 			stdio: "ignore",

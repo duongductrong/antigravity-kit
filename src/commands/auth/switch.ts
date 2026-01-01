@@ -16,13 +16,25 @@ import {
   isActiveProfile,
   setActiveProfile,
 } from "../../utils/symlink-manager.js";
+import {
+  findWorkspaceByName,
+  getCurrentWorkspaceFromState,
+  listWorkspaces,
+} from "../../utils/workspace-storage.js";
 
 export default defineCommand({
   meta: {
     name: "switch",
     description: "Switch between Google AntiGravity profiles",
   },
-  async run() {
+  args: {
+    workspace: {
+      type: "string",
+      description: "Specify a workspace to open (name or path). Use 'select' to choose interactively.",
+      alias: "w",
+    },
+  },
+  async run({ args }) {
     printHeader("antigravity-kit auth switch");
 
     p.intro(pc.cyan("◆") + " " + pc.bold("Switch Profile"));
@@ -106,6 +118,10 @@ export default defineCommand({
       p.outro(pc.dim("Profile unchanged"));
       return;
     }
+
+    // Capture current workspace BEFORE closing Antigravity
+    // This is the workspace the user was working on that should reopen after switch
+    const currentWorkspacePath = getCurrentWorkspaceFromState();
 
     const isRunning = await isAntigravityRunning();
     if (isRunning) {
@@ -192,12 +208,67 @@ export default defineCommand({
           await quitAntigravity();
           await new Promise((resolve) => setTimeout(resolve, 500));
         }
-        await openAntigravity(selectedPath as string);
-        p.outro(
-          `${pc.green("✔")} Switched to ${pc.cyan(
-            selectedProfile.email
-          )} and launched Antigravity`
-        );
+
+        // Get workspace to open
+        // Priority: 1) --workspace flag, 2) current workspace (captured before switch), 3) select interactively
+        let workspaceToOpen: string | null = null;
+
+        if (args.workspace === "select") {
+          // Interactive selection from available workspaces
+          const workspaces = listWorkspaces();
+          if (workspaces.length > 0) {
+            const workspaceOptions = workspaces.map((w) => ({
+              value: w.folderPath,
+              label: w.folderName,
+              hint: w.folderPath,
+            }));
+            workspaceOptions.push({
+              value: "",
+              label: "Skip (open without workspace)",
+              hint: "",
+            });
+
+            const selected = await p.select({
+              message: "Select a workspace to open:",
+              options: workspaceOptions,
+            });
+
+            if (!p.isCancel(selected) && selected) {
+              workspaceToOpen = selected as string;
+            }
+          }
+        } else if (args.workspace) {
+          // Find workspace by name from new profile's workspaces
+          const found = findWorkspaceByName(args.workspace);
+          if (found) {
+            workspaceToOpen = found.folderPath;
+          } else {
+            console.log(
+              pc.yellow(`Workspace "${args.workspace}" not found, using current workspace.`)
+            );
+            workspaceToOpen = currentWorkspacePath;
+          }
+        } else {
+          // Default: use the workspace that was open before switching
+          workspaceToOpen = currentWorkspacePath;
+        }
+
+        await openAntigravity(selectedPath as string, workspaceToOpen || undefined);
+
+        if (workspaceToOpen) {
+          const folderName = workspaceToOpen.split("/").pop() || workspaceToOpen;
+          p.outro(
+            `${pc.green("✔")} Switched to ${pc.cyan(
+              selectedProfile.email
+            )} and opened ${pc.cyan(folderName)}`
+          );
+        } else {
+          p.outro(
+            `${pc.green("✔")} Switched to ${pc.cyan(
+              selectedProfile.email
+            )} and launched Antigravity`
+          );
+        }
       } catch (error) {
         p.outro(
           `${pc.green("✔")} Switched to ${pc.cyan(
