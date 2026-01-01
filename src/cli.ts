@@ -5,6 +5,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineCommand, runMain } from "citty";
 import authCommand from "./commands/auth/index.js";
+import {
+	checkForUpdates,
+	printUpdateNotification,
+} from "./utils/version-checker.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -41,4 +45,15 @@ const main = defineCommand({
 	},
 });
 
-runMain(main);
+// Run the main command and check for updates after completion
+async function run() {
+	await runMain(main);
+
+	// Check for updates in background (non-blocking, silent on errors)
+	const updateInfo = await checkForUpdates();
+	if (updateInfo) {
+		printUpdateNotification(updateInfo);
+	}
+}
+
+run();
