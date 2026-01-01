@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.1-beta.3](https://github.com/duongductrong/antigravity-kit/compare/v0.0.1-beta.2...v0.0.1-beta.3) (2026-01-01)
+
+
+### 🐛 Bug Fixes
+
+* **#2:** Add `recursive: true` to `rmSync` calls for robust symlink removal. ([cd0bb24](https://github.com/duongductrong/antigravity-kit/commit/cd0bb245d0e7d68b777b7447773346597c8921cd))
+
 ## [0.0.1-beta.2](https://github.com/duongductrong/antigravity-kit/compare/v0.0.1-beta.1...v0.0.1-beta.2) (2025-12-29)
 
 
