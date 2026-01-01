@@ -101,7 +101,7 @@ export function getLastOpenedWorkspace(
 	profilePath?: string,
 ): WorkspaceInfo | null {
 	const workspaces = listWorkspaces(profilePath);
-	return workspaces.length > 0 ? workspaces[0] : null;
+	return workspaces.length > 0 ? workspaces?.[0] || null : null;
 }
 
 /**
