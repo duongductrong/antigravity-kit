@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.1-beta.4](https://github.com/duongductrong/antigravity-kit/compare/v0.0.1-beta.3...v0.0.1-beta.4) (2026-01-01)
+
+
+### 🚀 Features
+
+* enable opening specific workspaces with `auth switch` command and add workspace management utilities. ([b10c5a4](https://github.com/duongductrong/antigravity-kit/commit/b10c5a48e4b82b437d502599469f0705c296ab21))
+
+
+### 🏠 Chores
+
+* **version-checker:** Add version checking and update notifications, and introduce an interactive prompt for the `auth` command. ([be60852](https://github.com/duongductrong/antigravity-kit/commit/be6085232c8dd93b7cdf1af2693eaaba1538479f))
+
 ## [0.0.1-beta.3](https://github.com/duongductrong/antigravity-kit/compare/v0.0.1-beta.2...v0.0.1-beta.3) (2026-01-01)
 
 
