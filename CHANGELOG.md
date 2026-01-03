@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.2-beta.1](https://github.com/duongductrong/antigravity-kit/compare/v0.0.2-beta...v0.0.2-beta.1) (2026-01-03)
+
+
+### 📚 Documentation
+
+* update README ([39b2418](https://github.com/duongductrong/antigravity-kit/commit/39b2418f5b00cd3f76a7a2c6daa9e5a8bc549098))
+
+
+### ♻️ Code Refactoring
+
+* remove Google Cloud Code quota client implementation ([cd680c6](https://github.com/duongductrong/antigravity-kit/commit/cd680c69b51d181657a2277c2d1edf8e8c76570f))
+
 ## [0.0.2-beta](https://github.com/duongductrong/antigravity-kit/compare/v0.0.1...v0.0.2-beta) (2026-01-03)
 
 
