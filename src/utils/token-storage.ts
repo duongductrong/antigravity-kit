@@ -1,13 +1,16 @@
 /**
  * Token Storage Utilities
  * 
- * Manages refresh token storage with Keychain as default on macOS.
+ * Manages refresh token storage with secure keychain as default.
+ * Cross-platform support via keytar:
+ * - macOS: Keychain
+ * - Windows: Credential Manager
+ * - Linux: libsecret (GNOME Keyring / KWallet)
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir, platform } from "node:os";
+import { homedir } from "node:os";
 import { join } from "node:path";
-import { execSync } from "node:child_process";
 
 // ============================================
 // CONFIGURATION
@@ -40,6 +43,35 @@ export interface TokenMetadata {
 }
 
 // ============================================
+// KEYTAR LOADER (Cross-platform secure storage)
+// ============================================
+
+type Keytar = typeof import("keytar");
+
+let keytarModule: Keytar | null = null;
+let keytarLoadAttempted = false;
+
+/**
+ * Dynamically load keytar module
+ * This allows graceful fallback if keytar is not available
+ */
+async function loadKeytar(): Promise<Keytar | null> {
+  if (keytarLoadAttempted) {
+    return keytarModule;
+  }
+
+  keytarLoadAttempted = true;
+
+  try {
+    keytarModule = await import("keytar");
+    return keytarModule;
+  } catch {
+    // keytar not available (native bindings failed, not installed, etc.)
+    return null;
+  }
+}
+
+// ============================================
 // FILE-BASED STORAGE
 // ============================================
 
@@ -68,38 +100,22 @@ function saveTokenStore(store: TokenStore): void {
 }
 
 // ============================================
-// KEYCHAIN STORAGE (macOS)
+// KEYCHAIN STORAGE (Cross-platform via keytar)
 // ============================================
 
 /**
- * Check if keychain storage is available (macOS only)
+ * Check if keychain storage is available
+ * Works on macOS (Keychain), Windows (Credential Manager), Linux (libsecret)
  */
-export function isKeychainAvailable(): boolean {
-  return platform() === "darwin";
-}
+export async function isKeychainAvailable(): Promise<boolean> {
+  const keytar = await loadKeytar();
+  if (!keytar) {
+    return false;
+  }
 
-/**
- * Save token to macOS Keychain
- */
-function saveToKeychain(email: string, refreshToken: string): boolean {
-  if (!isKeychainAvailable()) return false;
-
+  // Test if keytar actually works by trying a harmless operation
   try {
-    // Delete existing entry first (ignore errors if not found)
-    try {
-      execSync(
-        `security delete-generic-password -s "${KEYCHAIN_SERVICE}" -a "${email}" 2>/dev/null`,
-        { stdio: "ignore" }
-      );
-    } catch {
-      // Ignore - entry might not exist
-    }
-
-    // Add new entry
-    execSync(
-      `security add-generic-password -s "${KEYCHAIN_SERVICE}" -a "${email}" -w "${refreshToken}"`,
-      { stdio: "ignore" }
-    );
+    await keytar.findCredentials(KEYCHAIN_SERVICE);
     return true;
   } catch {
     return false;
@@ -107,34 +123,45 @@ function saveToKeychain(email: string, refreshToken: string): boolean {
 }
 
 /**
- * Get token from macOS Keychain
+ * Save token to system keychain
  */
-function getFromKeychain(email: string): string | null {
-  if (!isKeychainAvailable()) return null;
+async function saveToKeychain(email: string, refreshToken: string): Promise<boolean> {
+  const keytar = await loadKeytar();
+  if (!keytar) return false;
 
   try {
-    const result = execSync(
-      `security find-generic-password -s "${KEYCHAIN_SERVICE}" -a "${email}" -w 2>/dev/null`,
-      { encoding: "utf-8" }
-    );
-    return result.trim();
+    await keytar.setPassword(KEYCHAIN_SERVICE, email, refreshToken);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Get token from system keychain
+ */
+async function getFromKeychain(email: string): Promise<string | null> {
+  const keytar = await loadKeytar();
+  if (!keytar) return null;
+
+  try {
+    const password = await keytar.getPassword(KEYCHAIN_SERVICE, email);
+    return password;
   } catch {
     return null;
   }
 }
 
 /**
- * Delete token from macOS Keychain
+ * Delete token from system keychain
  */
-function deleteFromKeychain(email: string): boolean {
-  if (!isKeychainAvailable()) return false;
+async function deleteFromKeychain(email: string): Promise<boolean> {
+  const keytar = await loadKeytar();
+  if (!keytar) return false;
 
   try {
-    execSync(
-      `security delete-generic-password -s "${KEYCHAIN_SERVICE}" -a "${email}" 2>/dev/null`,
-      { stdio: "ignore" }
-    );
-    return true;
+    const deleted = await keytar.deletePassword(KEYCHAIN_SERVICE, email);
+    return deleted;
   } catch {
     return false;
   }
@@ -146,20 +173,20 @@ function deleteFromKeychain(email: string): boolean {
 
 /**
  * Save refresh token for an account
- * By default, uses Keychain on macOS unless insecure=true
+ * By default, uses system keychain unless insecure=true
  * @param email - Account email
  * @param refreshToken - OAuth refresh token
  * @param insecure - Store in local file instead of Keychain (default: false)
  */
-export function saveRefreshToken(
+export async function saveRefreshToken(
   email: string,
   refreshToken: string,
   insecure = false
-): void {
-  const useKeychain = !insecure && isKeychainAvailable();
+): Promise<void> {
+  const useKeychain = !insecure && await isKeychainAvailable();
 
   if (useKeychain) {
-    const success = saveToKeychain(email, refreshToken);
+    const success = await saveToKeychain(email, refreshToken);
     if (success) {
       // Save metadata (without token) to file for tracking
       const store = loadTokenStore();
@@ -189,7 +216,7 @@ export function saveRefreshToken(
  * @param email - Account email
  * @returns Refresh token or null if not found
  */
-export function getRefreshToken(email: string): string | null {
+export async function getRefreshToken(email: string): Promise<string | null> {
   const store = loadTokenStore();
   const entry = store[email];
 
@@ -207,12 +234,12 @@ export function getRefreshToken(email: string): string | null {
  * Delete refresh token for an account
  * @param email - Account email
  */
-export function deleteRefreshToken(email: string): void {
+export async function deleteRefreshToken(email: string): Promise<void> {
   const store = loadTokenStore();
   const entry = store[email];
 
   if (entry?.refreshToken === "[keychain]") {
-    deleteFromKeychain(email);
+    await deleteFromKeychain(email);
   }
 
   delete store[email];
@@ -230,8 +257,8 @@ export function listStoredAccounts(): string[] {
 /**
  * Check if an account has a stored token
  */
-export function hasStoredToken(email: string): boolean {
-  return getRefreshToken(email) !== null;
+export async function hasStoredToken(email: string): Promise<boolean> {
+  return (await getRefreshToken(email)) !== null;
 }
 
 /**
@@ -246,14 +273,14 @@ export function isTokenInKeychain(email: string): boolean {
 /**
  * Get token metadata for an account
  */
-export function getTokenMetadata(email: string): TokenMetadata | null {
+export async function getTokenMetadata(email: string): Promise<TokenMetadata | null> {
   const store = loadTokenStore();
   const entry = store[email];
 
   if (!entry) return null;
 
   const isKeychain = entry.refreshToken === "[keychain]";
-  const hasToken = isKeychain ? getFromKeychain(email) !== null : true;
+  const hasToken = isKeychain ? (await getFromKeychain(email)) !== null : true;
 
   return {
     email,
@@ -267,12 +294,12 @@ export function getTokenMetadata(email: string): TokenMetadata | null {
 /**
  * Get all token metadata
  */
-export function getAllTokenMetadata(): TokenMetadata[] {
+export async function getAllTokenMetadata(): Promise<TokenMetadata[]> {
   const store = loadTokenStore();
   const result: TokenMetadata[] = [];
 
   for (const email of Object.keys(store)) {
-    const metadata = getTokenMetadata(email);
+    const metadata = await getTokenMetadata(email);
     if (metadata) {
       result.push(metadata);
     }

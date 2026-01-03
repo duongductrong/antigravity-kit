@@ -226,7 +226,7 @@ export default defineCommand({
 		}
 
 		// Check if we have a refresh token for this account
-		if (!hasStoredToken(email)) {
+		if (!(await hasStoredToken(email))) {
 			p.note(
 				`No OAuth token found for ${pc.cyan(email)}.
 
@@ -241,7 +241,7 @@ ${pc.dim("(The account was likely added using --manual mode)")}`,
 			process.exit(1);
 		}
 
-		const refreshToken = getRefreshToken(email);
+		const refreshToken = await getRefreshToken(email);
 		if (!refreshToken) {
 			p.cancel("Failed to retrieve refresh token");
 			process.exit(1);

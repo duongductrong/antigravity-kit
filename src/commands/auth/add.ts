@@ -168,7 +168,7 @@ async function runOAuthFlow(spinner: ReturnType<typeof p.spinner>, insecure: boo
 2. Capture your login and create a profile
 3. Store tokens for quota checking
 
-${isKeychainAvailable() && !insecure ? pc.green("🔐 Tokens will be stored in macOS Keychain") : pc.dim("💾 Tokens will be stored locally")}`,
+${(await isKeychainAvailable()) && !insecure ? pc.green("🔐 Tokens will be stored in macOS Keychain") : pc.dim("💾 Tokens will be stored locally")}`,
 		"OAuth Sign-in",
 	);
 
@@ -217,7 +217,7 @@ ${isKeychainAvailable() && !insecure ? pc.green("🔐 Tokens will be stored in m
 		const profile = addProfileAndSetActive(email, profilePath);
 
 		// Save refresh token (Keychain by default on macOS unless --insecure)
-		saveRefreshToken(email, result.tokens.refresh_token, insecure);
+		await saveRefreshToken(email, result.tokens.refresh_token, insecure);
 
 		spinner.stop("Profile saved");
 

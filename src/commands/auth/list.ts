@@ -24,21 +24,19 @@ function truncate(str: string, maxLength: number): string {
 	return `${str.slice(0, maxLength - 3)}...`;
 }
 
-function getOAuthBadge(email: string): string {
-	if (!hasStoredToken(email)) {
+async function getOAuthBadge(email: string): Promise<string> {
+	if (!(await hasStoredToken(email))) {
 		return pc.dim("✗");
 	}
 	return pc.green("✓");
 }
 
 function getStorageBadge(email: string): string {
-	if (!hasStoredToken(email)) {
+	// isTokenInKeychain is sync (just checks file metadata)
+	if (!isTokenInKeychain(email)) {
 		return pc.dim("—");
 	}
-	if (isTokenInKeychain(email)) {
-		return "🔐";
-	}
-	return "💾";
+	return "🔐";
 }
 
 export default defineCommand({
@@ -86,7 +84,7 @@ export default defineCommand({
 			const email = isActive
 				? pc.green(truncate(profile.email, 30).padEnd(30))
 				: truncate(profile.email, 30).padEnd(30);
-			const oauth = getOAuthBadge(profile.email).padEnd(5);
+			const oauth = (await getOAuthBadge(profile.email)).padEnd(5);
 			const storage = getStorageBadge(profile.email).padEnd(7);
 			const size = formatSize(getProfileSize(profile.profilePath)).padEnd(10);
 			const created = pc.dim(formatDate(profile.createdAt));

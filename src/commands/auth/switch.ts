@@ -122,7 +122,7 @@ export default defineCommand({
     }
 
     // Check if selected profile has OAuth token
-    if (!hasStoredToken(selectedProfile.email)) {
+    if (!(await hasStoredToken(selectedProfile.email))) {
       console.log();
       const action = await p.select({
         message: `${pc.yellow(selectedProfile.email)} has no OAuth token. Quota checking won't work.`,
@@ -141,7 +141,7 @@ export default defineCommand({
       if (action === "signin") {
         try {
           const result = await startOAuthFlow();
-          saveRefreshToken(selectedProfile.email, result.tokens.refresh_token);
+          await saveRefreshToken(selectedProfile.email, result.tokens.refresh_token);
           console.log(pc.green("✔") + " OAuth token saved for " + pc.cyan(selectedProfile.email));
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : "Unknown error";
