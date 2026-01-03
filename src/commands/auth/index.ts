@@ -4,6 +4,7 @@ import pc from "picocolors";
 import { printHeader } from "../../utils/branding.js";
 import addCommand from "./add.js";
 import listCommand from "./list.js";
+import quotaCommand from "./quota.js";
 import removeCommand from "./remove.js";
 import switchCommand from "./switch.js";
 
@@ -12,6 +13,7 @@ const subCommands = {
 	list: listCommand,
 	switch: switchCommand,
 	remove: removeCommand,
+	quota: quotaCommand,
 };
 
 type SubCommandKey = keyof typeof subCommands;
@@ -27,6 +29,7 @@ const subCommandOptions: SubCommandOption[] = [
 	{ value: "add", label: "add", hint: "Add a new account" },
 	{ value: "switch", label: "switch", hint: "Switch to a different profile" },
 	{ value: "remove", label: "remove", hint: "Remove a saved profile" },
+	{ value: "quota", label: "quota", hint: "Check account quota" },
 ];
 
 const subCommandNames = Object.keys(subCommands);

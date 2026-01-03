@@ -21,6 +21,8 @@ import {
   getCurrentWorkspaceFromState,
   listWorkspaces,
 } from "../../utils/workspace-storage.js";
+import { hasStoredToken, saveRefreshToken } from "../../utils/token-storage.js";
+import { startOAuthFlow } from "../../utils/oauth-server.js";
 
 export default defineCommand({
   meta: {
@@ -117,6 +119,36 @@ export default defineCommand({
     if (isActiveProfile(selectedPath as string)) {
       p.outro(pc.dim("Profile unchanged"));
       return;
+    }
+
+    // Check if selected profile has OAuth token
+    if (!hasStoredToken(selectedProfile.email)) {
+      console.log();
+      const action = await p.select({
+        message: `${pc.yellow(selectedProfile.email)} has no OAuth token. Quota checking won't work.`,
+        options: [
+          { value: "signin", label: "Sign in with OAuth first", hint: "Opens browser for Google sign-in" },
+          { value: "continue", label: "Continue without OAuth", hint: "Quota checking disabled" },
+          { value: "cancel", label: "Cancel" },
+        ],
+      });
+
+      if (p.isCancel(action) || action === "cancel") {
+        p.cancel("Operation cancelled");
+        process.exit(0);
+      }
+
+      if (action === "signin") {
+        try {
+          const result = await startOAuthFlow();
+          saveRefreshToken(selectedProfile.email, result.tokens.refresh_token);
+          console.log(pc.green("✔") + " OAuth token saved for " + pc.cyan(selectedProfile.email));
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          p.log.warning(pc.yellow(`OAuth sign-in failed: ${errorMessage}`));
+          p.log.info(pc.dim("Continuing without OAuth token..."));
+        }
+      }
     }
 
     // Capture current workspace BEFORE closing Antigravity
