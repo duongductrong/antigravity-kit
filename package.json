@@ -1,6 +1,6 @@
 {
   "name": "antigravity-kit",
-  "version": "0.0.1",
+  "version": "0.0.2-beta",
   "description": "CLI toolkit to manage antigravity IDE rules and commands",
   "type": "module",
   "exports": {
