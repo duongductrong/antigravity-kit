@@ -233,6 +233,7 @@ ${pc.green("Quota:")} ${result.quota.models.length} models available`,
 		p.outro(
 			`${pc.green("✔")} Account ${pc.cyan(email)} added successfully!`,
 		);
+		process.exit(0);
 	} catch (error) {
 		spinner.stop("Failed");
 
