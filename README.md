@@ -57,6 +57,7 @@ agk upgrade       # Upgrade to latest version
 ## 📖 Commands
 
 The CLI can be invoked using any of these aliases:
+
 - `antigravity-kit`
 - `antigravikit`
 - `agk` (recommended - shortest)
@@ -80,20 +81,22 @@ agk auth add --insecure
 
 **Options:**
 
-| Flag | Description |
-|------|-------------|
-| `--manual` | Use manual IDE login instead of OAuth (opens Antigravity IDE) |
-| `--insecure` | Store tokens in local file instead of macOS Keychain |
+| Flag         | Description                                                   |
+| ------------ | ------------------------------------------------------------- |
+| `--manual`   | Use manual IDE login instead of OAuth (opens Antigravity IDE) |
+| `--insecure` | Store tokens in local file instead of macOS Keychain          |
 
 **How it works:**
 
 **OAuth Flow (default):**
+
 1. Opens your browser for Google sign-in
 2. Captures authentication and creates a profile
 3. Stores refresh token securely (Keychain on macOS)
 4. Shows available quota for the account
 
 **Manual Flow (`--manual`):**
+
 1. If an existing Antigravity login is detected, you'll be prompted to add it as a profile
 2. If no login exists, Antigravity IDE will open for you to sign in
 3. The CLI watches for authentication and saves your profile automatically
@@ -155,6 +158,7 @@ agk auth list
 ```
 
 **Legend:**
+
 - `●` (green) - Active profile
 - `○` (dim) - Inactive profile
 - `✓` - OAuth token stored (quota checking enabled)
@@ -179,9 +183,9 @@ agk auth switch -w my-project         # Open specific workspace by name
 
 **Options:**
 
-| Flag | Alias | Description |
-|------|-------|-------------|
-| `--workspace <name>` | `-w` | Specify a workspace to open. Use `select` to choose interactively. |
+| Flag                 | Alias | Description                                                        |
+| -------------------- | ----- | ------------------------------------------------------------------ |
+| `--workspace <name>` | `-w`  | Specify a workspace to open. Use `select` to choose interactively. |
 
 **How it works:**
 
@@ -272,12 +276,13 @@ agk auth quota --interval 60
 
 **Options:**
 
-| Flag | Alias | Description |
-|------|-------|-------------|
-| `--account <email>` | `-a` | Email of the account to check (defaults to active profile) |
-| `--interval <seconds>` | `-i` | Auto-refresh interval in seconds (default: 30, min: 10) |
+| Flag                   | Alias | Description                                                |
+| ---------------------- | ----- | ---------------------------------------------------------- |
+| `--account <email>`    | `-a`  | Email of the account to check (defaults to active profile) |
+| `--interval <seconds>` | `-i`  | Auto-refresh interval in seconds (default: 30, min: 10)    |
 
 **Interactive Controls:**
+
 - Press `r` to manually reload quota data
 - Press `q` to exit the monitor
 
@@ -304,6 +309,7 @@ agk auth quota --interval 60
 ```
 
 **Requirements:**
+
 - OAuth token must be stored for the account
 - Use `agk auth add` (without `--manual`) to enable quota checking
 
@@ -329,11 +335,11 @@ agk upgrade --check
 
 **Options:**
 
-| Flag | Description |
-|------|-------------|
+| Flag       | Description                          |
+| ---------- | ------------------------------------ |
 | `--latest` | Upgrade to the latest stable version |
-| `--beta` | Upgrade to the latest beta version |
-| `--check` | Check for updates without installing |
+| `--beta`   | Upgrade to the latest beta version   |
+| `--check`  | Check for updates without installing |
 
 **How it works:**
 
@@ -348,13 +354,14 @@ agk upgrade --check
 
 Antigravity Kit supports secure token storage for OAuth authentication:
 
-| Platform | Storage Method | Notes |
-|----------|---------------|-------|
-| macOS    | Keychain      | Default. Uses macOS Keychain for secure storage |
-| Linux    | File          | Stored in `~/.antigravity-kit/tokens/` |
-| Windows  | File          | Stored in `~/.antigravity-kit/tokens/` |
+| Platform | Storage Method | Notes                                           |
+| -------- | -------------- | ----------------------------------------------- |
+| macOS    | Keychain       | Default. Uses macOS Keychain for secure storage |
+| Linux    | File           | Stored in `~/.antigravity-kit/tokens/`          |
+| Windows  | File           | Stored in `~/.antigravity-kit/tokens/`          |
 
 **Flags:**
+
 - Use `--insecure` with `auth add` to force file-based storage on macOS
 - Keychain storage may require user permission on first use
 
@@ -362,11 +369,11 @@ Antigravity Kit supports secure token storage for OAuth authentication:
 
 ## 🖥️ Platform Support
 
-| Platform | Status | Notes |
-|----------|--------|-------|
-| macOS    | ✅     | Looks for Antigravity.app in `/Applications` or `~/Applications` |
+| Platform | Status | Notes                                                             |
+| -------- | ------ | ----------------------------------------------------------------- |
+| macOS    | ✅     | Looks for Antigravity.app in `/Applications` or `~/Applications`  |
 | Linux    | ✅     | Uses `antigravity` command or checks `/usr/bin`, `/usr/local/bin` |
-| Windows  | ✅     | Supports Git Bash, MSYS, Cygwin. Looks in Program Files |
+| Windows  | ✅     | Supports Git Bash, MSYS, Cygwin. Looks in Program Files           |
 
 ## 📁 Profile Storage
 

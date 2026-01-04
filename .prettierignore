@@ -1,0 +1,17 @@
+dist
+coverage
+storybook-static
+.prettierignore
+yarn.lock
+pnpm-lock.yaml
+*.snap
+.npmrc
+.husky
+.gitignore
+.editorconfig
+.env.template
+node_modules
+.cursor
+.github
+.pnpm-store
+.assets

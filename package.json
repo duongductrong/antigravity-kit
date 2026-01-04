@@ -28,7 +28,8 @@
     "start": "node dist/cli.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "biome check --write",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "format": "prettier --write ."
   },
   "keywords": [
     "antigravity",
