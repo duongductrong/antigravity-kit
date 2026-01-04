@@ -1,32 +1,25 @@
 # Changelog
 
-## [0.0.4-beta.3](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4-beta.2...v0.0.4-beta.3) (2026-01-04)
-
-
-### 🏠 Chores
-
-* Update logo image. ([424a20c](https://github.com/duongductrong/antigravity-kit/commit/424a20c8529e81f4ccf297f40d9b371302b3fd73))
-
-## [0.0.4-beta.2](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4-beta.1...v0.0.4-beta.2) (2026-01-04)
+## [0.0.4](https://github.com/duongductrong/antigravity-kit/compare/v0.0.3...v0.0.4) (2026-01-04)
 
 
 ### 🚀 Features
 
-* Add project logo, update README, and introduce a git push helper script. ([247287a](https://github.com/duongductrong/antigravity-kit/commit/247287aa4ae940b096a39c934a127cc3eccc6d1d))
-
-## [0.0.4-beta.1](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4-beta...v0.0.4-beta.1) (2026-01-04)
-
+* feat: Add project logo, update README, and introduce a git push helper script. ([247287a](https://github.com/duongductrong/antigravity-kit/commit/247287aa4ae940b096a39c934a127cc3eccc6d1d))
+* feat: Add CLI upgrade command with interactive version selection and installation. ([744eccd](https://github.com/duongductrong/antigravity-kit/commit/744eccd0329f3e6e90debb7331a38bf3b7c5a032))
 
 ### 🐛 Bug Fixes
 
-* Adjust package.json lookup path for bundled builds. ([3523789](https://github.com/duongductrong/antigravity-kit/commit/35237893f270459d95ab753fb70508222e87cd7c))
+* fix: Adjust package.json lookup path for bundled builds. ([3523789](https://github.com/duongductrong/antigravity-kit/commit/35237893f270459d95ab753fb70508222e87cd7c))
 
-## [0.0.4-beta](https://github.com/duongductrong/antigravity-kit/compare/v0.0.3...v0.0.4-beta) (2026-01-04)
+### 🏠 Chores
 
+* chore(master): release 0.0.4-beta.3 ([921bcd2](https://github.com/duongductrong/antigravity-kit/commit/921bcd2c03835b732c2c0cb27632302db26e3c86))
+* chore: Update logo image. ([424a20c](https://github.com/duongductrong/antigravity-kit/commit/424a20c8529e81f4ccf297f40d9b371302b3fd73))
+* chore(master): release 0.0.4-beta.2 ([3042513](https://github.com/duongductrong/antigravity-kit/commit/3042513575715964d1557ca9b5aa08470a58bdbc))
+* chore(master): release 0.0.4-beta.1 ([b28695e](https://github.com/duongductrong/antigravity-kit/commit/b28695edd944824bc74ce6e53297f6099c201938))
+* chore(master): release 0.0.4-beta ([ad8bc3b](https://github.com/duongductrong/antigravity-kit/commit/ad8bc3ba86894dee7ee77ffaaa1dd31191d36eea))
 
-### 🚀 Features
-
-* Add CLI upgrade command with interactive version selection and installation. ([744eccd](https://github.com/duongductrong/antigravity-kit/commit/744eccd0329f3e6e90debb7331a38bf3b7c5a032))
 
 ## [0.0.3](https://github.com/duongductrong/antigravity-kit/compare/v0.0.2...v0.0.3) (2026-01-04)
 
