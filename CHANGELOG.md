@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.4-beta.3](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4-beta.2...v0.0.4-beta.3) (2026-01-04)
+
+
+### 🏠 Chores
+
+* Update logo image. ([424a20c](https://github.com/duongductrong/antigravity-kit/commit/424a20c8529e81f4ccf297f40d9b371302b3fd73))
+
 ## [0.0.4-beta.2](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4-beta.1...v0.0.4-beta.2) (2026-01-04)
 
 
