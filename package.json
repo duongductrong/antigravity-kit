@@ -53,6 +53,7 @@
     "archiver": "^7.0.1",
     "better-sqlite3": "^11.7.0",
     "citty": "^0.1.6",
+    "cli-table3": "^0.6.5",
     "consola": "^3.2.3",
     "defu": "^6.1.4",
     "figlet": "^1.8.0",

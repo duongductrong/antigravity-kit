@@ -203,14 +203,59 @@ export default defineCommand({
 		let email: string | undefined;
 
 		if (args.account) {
+			// Use specified account
 			email = args.account;
 		} else {
-			// Find active profile
+			// Get all profiles with OAuth tokens
 			const profiles = listProfiles();
-			const activeProfile = profiles.find((profile) => isActiveProfile(profile.profilePath));
+			const accountsWithOAuth: { email: string; isActive: boolean }[] = [];
 
-			if (activeProfile) {
-				email = activeProfile.email;
+			for (const profile of profiles) {
+				if (await hasStoredToken(profile.email)) {
+					accountsWithOAuth.push({
+						email: profile.email,
+						isActive: isActiveProfile(profile.profilePath),
+					});
+				}
+			}
+
+			if (accountsWithOAuth.length === 0) {
+				// No accounts with OAuth
+				p.note(
+					`No accounts with OAuth tokens found. Add an account first:
+
+  ${pc.cyan("antigravity-kit auth add")}`,
+					"No Account",
+				);
+				p.cancel("No account to check quota for");
+				process.exit(1);
+			} else if (accountsWithOAuth.length === 1) {
+				// Only one account, use it directly
+				email = accountsWithOAuth[0]!.email;
+			} else {
+				// Multiple accounts - show interactive selector
+				const activeAccount = accountsWithOAuth.find((a) => a.isActive);
+				const selected = await p.select({
+					message: "Select an account to monitor:",
+					options: accountsWithOAuth.map((acc) => {
+						const option: { value: string; label: string; hint?: string } = {
+							value: acc.email,
+							label: acc.email,
+						};
+						if (acc.isActive) {
+							option.hint = "active";
+						}
+						return option;
+					}),
+					initialValue: activeAccount ? activeAccount.email : accountsWithOAuth[0]!.email,
+				});
+
+				if (p.isCancel(selected)) {
+					p.cancel("Operation cancelled");
+					process.exit(0);
+				}
+
+				email = selected;
 			}
 		}
 
