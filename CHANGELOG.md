@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.0.5-beta](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4...v0.0.5-beta) (2026-01-04)
+
+
+### 📚 Documentation
+
+* Add original author and license information to oauth, oauth-server, and quota utility files. ([c61547e](https://github.com/duongductrong/antigravity-kit/commit/c61547e1e876c7ef61f5d1a9705b3c5f18a76dfe))
+
+
+### 🏠 Chores
+
+* add dependabot configuration for npm updates ([938c255](https://github.com/duongductrong/antigravity-kit/commit/938c25598d6bd80d0ab51eab0890140e5d45f682))
+
+
+### ♻️ Code Refactoring
+
+* standardize code formatting and improve readability across utility modules ([c998265](https://github.com/duongductrong/antigravity-kit/commit/c998265f9b24dff4aa40f2082253f36e20a893e6))
+
 ## [0.0.4](https://github.com/duongductrong/antigravity-kit/compare/v0.0.3...v0.0.4) (2026-01-04)
 
 ### 🚀 Features
