@@ -1,9 +1,21 @@
-# 🚀 Antigravity Kit
+<div align="center">
+  <img src="assets/logo.png" alt="Antigravity Tools Logo" width="250" />
+</div>
 
-A CLI toolkit to manage Google Antigravity IDE authentication profiles. Seamlessly switch between multiple Google accounts without the hassle of signing in and out.
+<h1 align="center">Antigravity Kit</h1>
 
-[![npm version](https://img.shields.io/npm/v/antigravity-kit.svg)](https://www.npmjs.com/package/antigravity-kit)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+  A CLI toolkit to manage Google Antigravity IDE authentication profiles. Seamlessly switch between multiple Google accounts without the hassle of signing in and out.
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/antigravity-kit">
+    <img src="https://img.shields.io/npm/v/antigravity-kit?color=black" alt="npm version" />
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-black" alt="License: MIT" />
+  </a>
+</p>
 
 ## ✨ Features
 
@@ -39,6 +51,7 @@ agk auth add      # Add your first account
 agk auth list     # List all profiles
 agk auth switch   # Switch to a different profile
 agk auth quota    # Monitor quota usage
+agk upgrade       # Upgrade to latest version
 ```
 
 ## 📖 Commands
@@ -126,19 +139,19 @@ agk auth list
 ```
 ◆ Saved Profiles
 
-     Email                          OAuth  Storage   Size        Created
-────────────────────────────────────────────────────────────────────────────────
-● user@gmail.com                    ✓      🔐        45.2 MB     Dec 15, 2024
-○ work@company.com                  ✓      🔐        38.7 MB     Dec 10, 2024
-○ personal@gmail.com                ✗      —         42.1 MB     Nov 28, 2024
-────────────────────────────────────────────────────────────────────────────────
+   Email                          OAuth  Storage   Claude            Gemini            Size        Created
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+● user@gmail.com                    ✓      🔐        100%              80% (2h45m)       45.2 MB     Dec 15, 2024
+○ work@company.com                  ✓      🔐        —                 —                 38.7 MB     Dec 10, 2024
+○ personal@gmail.com                ✗      —         —                 —                 42.1 MB     Nov 28, 2024
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-Active profile: user@gmail.com
+  Active: user@gmail.com
 
-Legend: ✓ OAuth enabled  🔐 Keychain  💾 File storage
-Total: 3 profiles
+  Legend: ● Active  ✓ OAuth  🔐 Keychain  N% Quota (reset)
+  Total: 3 profiles
 
-Use 'auth switch' to change the active profile
+  ⟳ Auto-refresh in 30s | Press 'r' to reload | Press 'q' to exit
 ```
 
 **Legend:**
@@ -147,7 +160,7 @@ Use 'auth switch' to change the active profile
 - `✓` - OAuth token stored (quota checking enabled)
 - `✗` - No OAuth token (added with `--manual`)
 - `🔐` - Token stored in Keychain
-- `💾` - Token stored in file
+- `N%` - Quota usage percentage (with reset time if available)
 
 ---
 
@@ -293,6 +306,41 @@ agk auth quota --interval 60
 **Requirements:**
 - OAuth token must be stored for the account
 - Use `agk auth add` (without `--manual`) to enable quota checking
+
+---
+
+### `upgrade`
+
+Upgrade antigravity-kit to the latest version.
+
+```bash
+# Interactive check and upgrade
+agk upgrade
+
+# Upgrade to latest stable version
+agk upgrade --latest
+
+# Upgrade to latest beta version
+agk upgrade --beta
+
+# Check for updates only
+agk upgrade --check
+```
+
+**Options:**
+
+| Flag | Description |
+|------|-------------|
+| `--latest` | Upgrade to the latest stable version |
+| `--beta` | Upgrade to the latest beta version |
+| `--check` | Check for updates without installing |
+
+**How it works:**
+
+1. Checks npm registry for new versions.
+2. Compares with your current installed version.
+3. Allows interactive selection of version (Stable vs Beta) if not specified via flag.
+4. Runs `npm install -g antigravity-kit@<version>` to perform the upgrade.
 
 ---
 
