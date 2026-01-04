@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineCommand, runMain } from "citty";
 import authCommand from "./commands/auth/index.js";
+import upgradeCommand from "./commands/upgrade.js";
 import {
 	checkForUpdates,
 	printUpdateNotification,
@@ -42,6 +43,7 @@ const main = defineCommand({
 	},
 	subCommands: {
 		auth: authCommand,
+		upgrade: upgradeCommand,
 	},
 });
 

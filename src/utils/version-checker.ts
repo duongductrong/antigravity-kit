@@ -33,7 +33,7 @@ export interface UpdateInfo {
 /**
  * Get the current package version from package.json
  */
-function getPackageJson(): PackageJson {
+export function getPackageJson(): PackageJson {
 	try {
 		const pkgPath = join(__dirname, "..", "..", "package.json");
 		const content = readFileSync(pkgPath, "utf-8");
@@ -212,8 +212,8 @@ export function printUpdateNotification(updateInfo: UpdateInfo): void {
 		const padding = boxWidth - stripAnsi(line).length - 2;
 		console.log(
 			pc.dim(boxChar.vertical) +
-				` ${line}${" ".repeat(padding)} ` +
-				pc.dim(boxChar.vertical),
+			` ${line}${" ".repeat(padding)} ` +
+			pc.dim(boxChar.vertical),
 		);
 	}
 
