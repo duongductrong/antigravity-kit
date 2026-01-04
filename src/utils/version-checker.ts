@@ -35,7 +35,9 @@ export interface UpdateInfo {
  */
 export function getPackageJson(): PackageJson {
 	try {
-		const pkgPath = join(__dirname, "..", "..", "package.json");
+		// When bundled by tsup, all output is flat in dist/
+		// So we only need to go up one level to find package.json
+		const pkgPath = join(__dirname, "..", "package.json");
 		const content = readFileSync(pkgPath, "utf-8");
 		return JSON.parse(content) as PackageJson;
 	} catch {
