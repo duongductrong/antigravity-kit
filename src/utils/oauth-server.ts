@@ -2,6 +2,10 @@
  * OAuth Server Utilities
  * 
  * Local HTTP server for OAuth callback and browser opening utilities.
+ * 
+ * Original Author: lbjlaq (https://github.com/lbjlaq)
+ * License: CC-BY-NC-SA-4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/)
+ * Note: This version contains modifications based on the original source code.
  */
 
 import * as http from "node:http";

@@ -2,6 +2,10 @@
  * Quota Fetching Utilities
  * 
  * Handles fetching quota information from Google Cloud Code API.
+ * 
+ * Original Author: lbjlaq (https://github.com/lbjlaq)
+ * License: CC-BY-NC-SA-4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/)
+ * Note: This version contains modifications based on the original source code.
  */
 
 import { refreshAccessToken } from "./oauth.js";
