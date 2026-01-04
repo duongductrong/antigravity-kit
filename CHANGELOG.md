@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3-beta](https://github.com/duongductrong/antigravity-kit/compare/v0.0.2...v0.0.3-beta) (2026-01-04)
+
+
+### 🚀 Features
+
+* add interactive account selection for auth quota and live quota display for auth list ([318e103](https://github.com/duongductrong/antigravity-kit/commit/318e103928904eb541ac1a01fb7724c1739244a8))
+
 ## [0.0.2](https://github.com/duongductrong/antigravity-kit/compare/v0.0.1...v0.0.2) (2026-01-04)
 
 
