@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.4-beta.1](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4-beta...v0.0.4-beta.1) (2026-01-04)
+
+
+### 🐛 Bug Fixes
+
+* Adjust package.json lookup path for bundled builds. ([3523789](https://github.com/duongductrong/antigravity-kit/commit/35237893f270459d95ab753fb70508222e87cd7c))
+
 ## [0.0.4-beta](https://github.com/duongductrong/antigravity-kit/compare/v0.0.3...v0.0.4-beta) (2026-01-04)
 
 
