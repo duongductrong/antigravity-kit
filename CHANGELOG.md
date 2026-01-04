@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.4-beta](https://github.com/duongductrong/antigravity-kit/compare/v0.0.3...v0.0.4-beta) (2026-01-04)
+
+
+### 🚀 Features
+
+* Add CLI upgrade command with interactive version selection and installation. ([744eccd](https://github.com/duongductrong/antigravity-kit/commit/744eccd0329f3e6e90debb7331a38bf3b7c5a032))
+
 ## [0.0.3](https://github.com/duongductrong/antigravity-kit/compare/v0.0.2...v0.0.3) (2026-01-04)
 
 
