@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.4-beta.2](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4-beta.1...v0.0.4-beta.2) (2026-01-04)
+
+
+### 🚀 Features
+
+* Add project logo, update README, and introduce a git push helper script. ([247287a](https://github.com/duongductrong/antigravity-kit/commit/247287aa4ae940b096a39c934a127cc3eccc6d1d))
+
 ## [0.0.4-beta.1](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4-beta...v0.0.4-beta.1) (2026-01-04)
 
 
