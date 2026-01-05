@@ -18,6 +18,9 @@ import {
   watchForAuth,
 } from "../../utils/profile-manager.js"
 import { getFirstAuthSession } from "../../utils/sqlite-reader.js"
+import { refreshAccessToken } from "../../utils/oauth.js"
+import { getUserInfo } from "../../utils/google-api.js"
+import { fetchProjectId, fetchQuota } from "../../utils/quota.js"
 
 type WaitResultType = "auto" | "manual"
 
@@ -152,13 +155,27 @@ export default defineCommand({
 
     const spinner = p.spinner()
 
-    // Use OAuth flow by default, manual flow with --manual flag
     if (args.manual) {
-      // Manual flow: open Antigravity IDE and watch for login
       await runManualFlow(spinner)
     } else {
-      // OAuth flow: open browser for Google sign-in
-      await runOAuthFlow(spinner, args.insecure)
+      const authMethod = await p.select({
+        message: "Select authentication method:",
+        options: [
+          { value: "oauth", label: "OAuth (recommended)" },
+          { value: "manual", label: "Manual (email + refresh token)" },
+        ],
+      })
+
+      if (p.isCancel(authMethod)) {
+        p.cancel("Operation cancelled")
+        process.exit(0)
+      }
+
+      if (authMethod === "oauth") {
+        await runOAuthFlow(spinner, args.insecure)
+      } else {
+        await runManualTokenFlow(spinner, args.insecure)
+      }
     }
   },
 })
@@ -192,7 +209,6 @@ ${(await isKeychainAvailable()) && !insecure ? pc.green("🔐 Tokens will be sto
     const result = await startOAuthFlow()
     const email = result.userInfo.email
 
-    // Check if profile already exists
     const existingProfile = getProfileByEmail(email)
     if (existingProfile) {
       console.log()
@@ -218,11 +234,9 @@ ${(await isKeychainAvailable()) && !insecure ? pc.green("🔐 Tokens will be sto
 
     spinner.start("Saving profile...")
 
-    // Copy current IDE settings/profile to preserve extensions, themes, etc.
     const profilePath = copyDefaultProfileToStorage(email)
     const profile = addProfileAndSetActive(email, profilePath)
 
-    // Save refresh token (Keychain by default on macOS unless --insecure)
     await saveRefreshToken(email, result.tokens.refresh_token, insecure)
 
     spinner.stop("Profile saved")
@@ -233,6 +247,133 @@ ${(await isKeychainAvailable()) && !insecure ? pc.green("🔐 Tokens will be sto
 ${pc.green("Profile:")} ${profilePath}
 ${pc.green("Status:")} ${pc.cyan("Active")}
 ${pc.green("Quota:")} ${result.quota.models.length} models available`,
+      "Profile Created"
+    )
+
+    p.outro(`${pc.green("✔")} Account ${pc.cyan(email)} added successfully!`)
+    process.exit(0)
+  } catch (error) {
+    spinner.stop("Failed")
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred"
+    p.cancel(`Failed to add account: ${errorMessage}`)
+    process.exit(1)
+  }
+}
+
+async function runManualTokenFlow(
+  spinner: ReturnType<typeof p.spinner>,
+  insecure: boolean
+): Promise<void> {
+  console.log()
+  p.note(
+    `${pc.cyan("This will:")}
+1. Ask for your email and refresh token
+2. Validate the token and fetch your account info
+3. Create a profile and store the token
+
+${(await isKeychainAvailable()) && !insecure ? pc.green("🔐 Tokens will be stored in macOS Keychain") : pc.dim("💾 Tokens will be stored locally")}`,
+    "Manual Token Entry"
+  )
+
+  const email = await p.text({
+    message: "Enter your Google email:",
+    placeholder: "user@gmail.com",
+    validate: (value) => {
+      if (!value) return "Email is required"
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        return "Please enter a valid email address"
+      }
+      return undefined
+    },
+  })
+
+  if (p.isCancel(email)) {
+    p.cancel("Operation cancelled")
+    process.exit(0)
+  }
+
+  const refreshToken = await p.text({
+    message: "Enter your refresh token:",
+    placeholder: "1//...",
+    validate: (value) => {
+      if (!value) return "Refresh token is required"
+      return undefined
+    },
+  })
+
+  if (p.isCancel(refreshToken)) {
+    p.cancel("Operation cancelled")
+    process.exit(0)
+  }
+
+  try {
+    spinner.start("Validating token...")
+
+    const tokenResponse = await refreshAccessToken(refreshToken)
+    const userInfo = await getUserInfo(tokenResponse.access_token)
+
+    if (userInfo.email !== email) {
+      spinner.stop("Failed")
+      p.cancel(
+        `Token email (${userInfo.email}) doesn't match the entered email (${email})`
+      )
+      process.exit(1)
+    }
+
+    spinner.stop("Token validated")
+
+    const existingProfile = getProfileByEmail(email)
+    if (existingProfile) {
+      console.log()
+      console.log(pc.dim("Account already exists: ") + pc.green(email))
+
+      const shouldReplace = await p.confirm({
+        message: "Replace the existing profile with fresh data?",
+        initialValue: false,
+      })
+
+      if (p.isCancel(shouldReplace) || !shouldReplace) {
+        p.cancel("Operation cancelled")
+        process.exit(0)
+      }
+    }
+
+    console.log()
+    console.log(pc.dim("Account to add: ") + pc.green(email))
+    if (userInfo.name) {
+      console.log(pc.dim("Name: ") + pc.cyan(userInfo.name))
+    }
+    console.log()
+
+    spinner.start("Fetching quota...")
+
+    const { projectId, subscriptionTier } = await fetchProjectId(
+      tokenResponse.access_token
+    )
+    const quota = await fetchQuota(tokenResponse.access_token, projectId)
+    if (subscriptionTier) {
+      quota.subscriptionTier = subscriptionTier
+    }
+
+    spinner.stop("Quota fetched")
+
+    spinner.start("Saving profile...")
+
+    const profilePath = copyDefaultProfileToStorage(email)
+    const profile = addProfileAndSetActive(email, profilePath)
+
+    await saveRefreshToken(email, refreshToken, insecure)
+
+    spinner.stop("Profile saved")
+
+    console.log()
+    p.note(
+      `${pc.green("Email:")} ${profile.email}
+${pc.green("Profile:")} ${profilePath}
+${pc.green("Status:")} ${pc.cyan("Active")}
+${pc.green("Quota:")} ${quota.models.length} models available`,
       "Profile Created"
     )
 
