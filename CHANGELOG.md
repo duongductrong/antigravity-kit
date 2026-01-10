@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.5-beta.1](https://github.com/duongductrong/antigravity-kit/compare/v0.0.5-beta...v0.0.5-beta.1) (2026-01-10)
+
+
+### 🚀 Features
+
+* **auth:** enhance authentication flow with method selection and manual token entry ([01a7a63](https://github.com/duongductrong/antigravity-kit/commit/01a7a633b99d9362b4d2c62f27ecadb5e18a8c87))
+* **auth:** enhance authentication flow with method selection and manual token entry ([d21183a](https://github.com/duongductrong/antigravity-kit/commit/d21183a8aed30f20ca81c1df639fa86786e7439e))
+
 ## [0.0.5-beta](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4...v0.0.5-beta) (2026-01-04)
 
 
