@@ -1,29 +1,26 @@
 # Changelog
 
-## [0.0.5-beta.1](https://github.com/duongductrong/antigravity-kit/compare/v0.0.5-beta...v0.0.5-beta.1) (2026-01-10)
+## [0.0.5](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4...v0.0.5) (2026-01-25)
 
 
 ### 🚀 Features
 
-* **auth:** enhance authentication flow with method selection and manual token entry ([01a7a63](https://github.com/duongductrong/antigravity-kit/commit/01a7a633b99d9362b4d2c62f27ecadb5e18a8c87))
-* **auth:** enhance authentication flow with method selection and manual token entry ([d21183a](https://github.com/duongductrong/antigravity-kit/commit/d21183a8aed30f20ca81c1df639fa86786e7439e))
-
-## [0.0.5-beta](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4...v0.0.5-beta) (2026-01-04)
-
+* feat(auth): enhance authentication flow with method selection and manual token entry ([d21183a](https://github.com/duongductrong/antigravity-kit/commit/d21183a8aed30f20ca81c1df639fa86786e7439e))
 
 ### 📚 Documentation
 
-* Add original author and license information to oauth, oauth-server, and quota utility files. ([c61547e](https://github.com/duongductrong/antigravity-kit/commit/c61547e1e876c7ef61f5d1a9705b3c5f18a76dfe))
-
-
-### 🏠 Chores
-
-* add dependabot configuration for npm updates ([938c255](https://github.com/duongductrong/antigravity-kit/commit/938c25598d6bd80d0ab51eab0890140e5d45f682))
-
+* docs: Add original author and license information to oauth, oauth-server, and quota utility files. ([c61547e](https://github.com/duongductrong/antigravity-kit/commit/c61547e1e876c7ef61f5d1a9705b3c5f18a76dfe))
 
 ### ♻️ Code Refactoring
 
-* standardize code formatting and improve readability across utility modules ([c998265](https://github.com/duongductrong/antigravity-kit/commit/c998265f9b24dff4aa40f2082253f36e20a893e6))
+* refactor: standardize code formatting and improve readability across utility modules ([c998265](https://github.com/duongductrong/antigravity-kit/commit/c998265f9b24dff4aa40f2082253f36e20a893e6))
+
+### 🏠 Chores
+
+* chore(master): release 0.0.5-beta.1 ([f2a0b41](https://github.com/duongductrong/antigravity-kit/commit/f2a0b41da4a4d6fd54656167388e8bafe9700700))
+* chore(master): release 0.0.5-beta ([4f7c9e1](https://github.com/duongductrong/antigravity-kit/commit/4f7c9e1fa6212b955e2d7aa745150c537f5ba179))
+* chore: add dependabot configuration for npm updates ([938c255](https://github.com/duongductrong/antigravity-kit/commit/938c25598d6bd80d0ab51eab0890140e5d45f682))
+
 
 ## [0.0.4](https://github.com/duongductrong/antigravity-kit/compare/v0.0.3...v0.0.4) (2026-01-04)
 
