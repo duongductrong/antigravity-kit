@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.6-beta.1](https://github.com/duongductrong/antigravity-kit/compare/v0.0.6-beta...v0.0.6-beta.1) (2026-02-28)
+
+
+### 🐛 Bug Fixes
+
+* enhance model quota matching logic and improve percentage calculation ([506206b](https://github.com/duongductrong/antigravity-kit/commit/506206bc310466342b5ed9cadb6a7789e18d1d7d))
+
 ## [0.0.6-beta](https://github.com/duongductrong/antigravity-kit/compare/v0.0.5...v0.0.6-beta) (2026-02-28)
 
 
