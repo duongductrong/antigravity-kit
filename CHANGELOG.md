@@ -1,23 +1,19 @@
 # Changelog
 
-## [0.0.6-beta.1](https://github.com/duongductrong/antigravity-kit/compare/v0.0.6-beta...v0.0.6-beta.1) (2026-02-28)
+## [0.0.6](https://github.com/duongductrong/antigravity-kit/compare/v0.0.5...v0.0.6) (2026-02-28)
 
 
 ### 🐛 Bug Fixes
 
-* enhance model quota matching logic and improve percentage calculation ([506206b](https://github.com/duongductrong/antigravity-kit/commit/506206bc310466342b5ed9cadb6a7789e18d1d7d))
-
-## [0.0.6-beta](https://github.com/duongductrong/antigravity-kit/compare/v0.0.5...v0.0.6-beta) (2026-02-28)
-
-
-### 🐛 Bug Fixes
-
-* improve Antigravity launch and quit process with retries and graceful handling ([9e63e19](https://github.com/duongductrong/antigravity-kit/commit/9e63e19447d880baac0b9a950a3add5d2d677b62))
-
+* fix: enhance model quota matching logic and improve percentage calculation ([506206b](https://github.com/duongductrong/antigravity-kit/commit/506206bc310466342b5ed9cadb6a7789e18d1d7d))
+* fix: improve Antigravity launch and quit process with retries and graceful handling ([9e63e19](https://github.com/duongductrong/antigravity-kit/commit/9e63e19447d880baac0b9a950a3add5d2d677b62))
 
 ### 🏠 Chores
 
-* add tests for scout-block hook in PowerShell and Bash scripts, and update .gitignore ([9916b6e](https://github.com/duongductrong/antigravity-kit/commit/9916b6ec6bd77931f72c755d10967a5be0f49f58))
+* chore(master): release 0.0.6-beta.1 ([daf0973](https://github.com/duongductrong/antigravity-kit/commit/daf097344b894196185dd22c8a311087334960fe))
+* chore(master): release 0.0.6-beta ([64d00bb](https://github.com/duongductrong/antigravity-kit/commit/64d00bba4f406bd1999a10f565e3df3e25dff7a8))
+* chore: add tests for scout-block hook in PowerShell and Bash scripts, and update .gitignore ([9916b6e](https://github.com/duongductrong/antigravity-kit/commit/9916b6ec6bd77931f72c755d10967a5be0f49f58))
+
 
 ## [0.0.5](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4...v0.0.5) (2026-01-25)
 
