@@ -52,7 +52,7 @@
   "dependencies": {
     "@clack/prompts": "^0.8.2",
     "archiver": "^7.0.1",
-    "better-sqlite3": "^11.7.0",
+    "better-sqlite3": "^12.5.0",
     "citty": "^0.1.6",
     "cli-table3": "^0.6.5",
     "consola": "^3.2.3",
