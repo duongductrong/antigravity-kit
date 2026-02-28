@@ -3,3 +3,8 @@
 
 /dist
 /packages
+
+.claude
+
+/scripts/
+/docs
