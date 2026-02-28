@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.6-beta](https://github.com/duongductrong/antigravity-kit/compare/v0.0.5...v0.0.6-beta) (2026-02-28)
+
+
+### 🐛 Bug Fixes
+
+* improve Antigravity launch and quit process with retries and graceful handling ([9e63e19](https://github.com/duongductrong/antigravity-kit/commit/9e63e19447d880baac0b9a950a3add5d2d677b62))
+
+
+### 🏠 Chores
+
+* add tests for scout-block hook in PowerShell and Bash scripts, and update .gitignore ([9916b6e](https://github.com/duongductrong/antigravity-kit/commit/9916b6ec6bd77931f72c755d10967a5be0f49f58))
+
 ## [0.0.5](https://github.com/duongductrong/antigravity-kit/compare/v0.0.4...v0.0.5) (2026-01-25)
 
 
