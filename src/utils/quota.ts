@@ -129,9 +129,11 @@ export async function fetchQuota(
 
   for (const [name, info] of Object.entries(data.models)) {
     if (info.quotaInfo) {
-      const percentage = info.quotaInfo.remainingFraction
-        ? Math.round(info.quotaInfo.remainingFraction * 100)
-        : 0
+      const fraction = Number(info.quotaInfo.remainingFraction)
+      const percentage =
+        Number.isFinite(fraction) && fraction >= 0
+          ? Math.round(fraction * 100)
+          : 0
 
       // Include all gemini and claude models
       if (name.includes("gemini") || name.includes("claude")) {

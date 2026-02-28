@@ -129,13 +129,37 @@ function findModelQuota(
   models: ModelQuota[],
   targetModel: string
 ): QuotaInfo | null {
-  // Find exact match or partial match
-  const model = models.find(
-    (m) =>
-      m.name === targetModel ||
-      m.name.includes(targetModel) ||
-      targetModel.includes(m.name.split("/").pop() || "")
-  )
+  // Normalize for comparison: strip prefixes like "models/", lowercase
+  const normalize = (s: string) =>
+    s.toLowerCase().replace(/^models\//, "").trim()
+  const target = normalize(targetModel)
+
+  // 1. Exact match (normalized)
+  let model = models.find((m) => normalize(m.name) === target)
+
+  // 2. Either contains the other
+  if (!model) {
+    model = models.find((m) => {
+      const name = normalize(m.name)
+      return name.includes(target) || target.includes(name)
+    })
+  }
+
+  // 3. Match by base model name (e.g. "claude-opus" matches "claude-opus-4-5-thinking")
+  if (!model) {
+    const targetParts = target.split("-")
+    model = models.find((m) => {
+      const nameParts = normalize(m.name).split("-")
+      // Check if first 2 segments match (e.g. "claude-opus")
+      return (
+        targetParts.length >= 2 &&
+        nameParts.length >= 2 &&
+        targetParts[0] === nameParts[0] &&
+        targetParts[1] === nameParts[1]
+      )
+    })
+  }
+
   if (!model) return null
   return {
     percentage: model.percentage,
