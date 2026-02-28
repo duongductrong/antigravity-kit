@@ -253,7 +253,6 @@ export default defineCommand({
         const stillRunning = await isAntigravityRunning()
         if (stillRunning) {
           await quitAntigravity()
-          await new Promise((resolve) => setTimeout(resolve, 500))
         }
 
         // Get workspace to open
@@ -302,10 +301,30 @@ export default defineCommand({
           workspaceToOpen = currentWorkspacePath
         }
 
-        await openAntigravity(
-          selectedPath as string,
-          workspaceToOpen || undefined
-        )
+        // Retry launch up to 3 times with increasing delays
+        let lastError: unknown
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            await openAntigravity(
+              selectedPath as string,
+              workspaceToOpen || undefined
+            )
+            lastError = null
+            break
+          } catch (err) {
+            lastError = err
+            // Wait longer between retries (1s, 2s)
+            if (attempt < 2) {
+              await new Promise((resolve) =>
+                setTimeout(resolve, 1000 * (attempt + 1))
+              )
+            }
+          }
+        }
+
+        if (lastError) {
+          throw lastError
+        }
 
         if (workspaceToOpen) {
           const folderName = workspaceToOpen.split("/").pop() || workspaceToOpen
@@ -322,10 +341,12 @@ export default defineCommand({
           )
         }
       } catch (error) {
+        const errorDetail =
+          error instanceof Error ? error.message : String(error)
         p.outro(
           `${pc.green("✔")} Switched to ${pc.cyan(
             selectedProfile.email
-          )}\n${pc.yellow("⚠")} Failed to launch Antigravity`
+          )}\n${pc.yellow("⚠")} Failed to launch Antigravity: ${pc.dim(errorDetail)}`
         )
       }
     } else {

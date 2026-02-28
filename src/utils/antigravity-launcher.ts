@@ -146,15 +146,45 @@ export async function quitAntigravity(): Promise<boolean> {
 
   try {
     if (os === "darwin") {
-      // await execAsync('osascript -e \'quit app "Antigravity"\'');
-      await execAsync('pkill -9 -f "Antigravity"')
+      // Try graceful quit first via AppleScript
+      try {
+        await execAsync('osascript -e \'quit app "Antigravity"\'')
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+      } catch {
+        // Graceful quit failed, force kill
+        try {
+          await execAsync('pkill -9 -f "Antigravity"')
+        } catch {
+          // Process may already be gone
+        }
+      }
+
+      // Wait for process to fully exit
+      let waitAttempts = 0
+      while (waitAttempts < 10) {
+        const still = await isAntigravityRunning()
+        if (!still) break
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        waitAttempts++
+      }
+
+      // Final force kill if still running
+      if (await isAntigravityRunning()) {
+        try {
+          await execAsync('pkill -9 -f "Antigravity"')
+        } catch {
+          // Process may already be gone
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
     } else if (os === "linux") {
       await execAsync("pkill -x antigravity")
+      await new Promise((resolve) => setTimeout(resolve, 500))
     } else if (os === "win32") {
       await execAsync("taskkill /IM antigravity.exe /F")
+      await new Promise((resolve) => setTimeout(resolve, 500))
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 500))
     return true
   } catch {
     return false
